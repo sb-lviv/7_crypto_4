@@ -10,7 +10,18 @@ class Elgamal(RSA):
 
     def handle_input(self):
         if self.generate_key:
-            pass
+            p = random.randint(10 ** 20, 10 ** 50)
+            q = random.randint(2, p)
+            x = Elgamal.gen_key(p)  # Private x for receiver
+            y = Elgamal.power(q, x, p)
+
+            output_file = self.output_file + '.pub'
+            output_text = ('{}\n' * 3).format(p, q, y)
+            RSA.save_to_file(output_file, output_text)
+
+            output_file = self.output_file + '.prv'
+            output_text = '{}\n'.format(x)
+            RSA.save_to_file(output_file, output_text)
 
         elif self.file_to_encrypt is not None:
             pass
@@ -39,7 +50,7 @@ class Elgamal(RSA):
             if b % 2 == 0:
                 x = (x * y) % c
             y = (y * y) % c
-            b = int(b / 2)
+            b = b // 2
 
         return x % c
 
