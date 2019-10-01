@@ -12,19 +12,28 @@ class Elgamal(RSA):
         if self.generate_key:
             p = random.randint(10 ** 20, 10 ** 50)
             q = random.randint(2, p)
-            x = Elgamal.gen_key(p)  # Private x for receiver
+            x = random.randint(2, p)
             y = Elgamal.power(q, x, p)
 
             output_file = self.output_file + '.pub'
-            output_text = ('{}\n' * 3).format(p, q, y)
+            output_text = ('{}\n{}\n{}').format(p, q, y)
             RSA.save_to_file(output_file, output_text)
 
             output_file = self.output_file + '.prv'
-            output_text = '{}\n'.format(x)
+            output_text = '{}'.format(x)
             RSA.save_to_file(output_file, output_text)
 
         elif self.file_to_encrypt is not None:
-            pass
+            keys = RSA.read_from_file(self.key_file_name + '.pub').split('\n')
+            p, q, y = [int(x)for x in keys]
+
+            data = RSA.read_from_file(self.file_to_encrypt)
+            data, key = Elgamal.encrypt(data, p, q, y)
+
+            with open(self.output_file, 'w') as f:
+                for num in data:
+                    f.write(str(num) + '\n')
+                f.write(str(key))
 
         elif self.file_to_decrypt is not None:
             pass
@@ -55,23 +64,14 @@ class Elgamal(RSA):
         return x % c
 
     @staticmethod
-    def encrypt(msg, q, h, g):
+    def encrypt(msg, p, q, y):
 
-        en_msg = []
+        k = random.randint(2, p)
+        a = Elgamal.power(q, k, p)
+        b = Elgamal.power(y, k, p)
+        en_msg = [b * ord(char) for char in msg]
 
-        k = gen_key(q)  # Private key for sender
-        s = power(h, k, q)
-        p = power(g, k, q)
-
-        for i in range(0, len(msg)):
-            en_msg.append(msg[i])
-
-        print("g^k used : ", p)
-        print("g^ak used : ", s)
-        for i in range(0, len(en_msg)):
-            en_msg[i] = s * ord(en_msg[i])
-
-        return en_msg, p
+        return en_msg, a
 
     @staticmethod
     def decrypt(en_msg, p, key, q):
