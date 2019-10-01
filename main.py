@@ -20,7 +20,7 @@ class Elgamal(RSA):
             RSA.save_to_file(output_file, output_text)
 
             output_file = self.output_file + '.prv'
-            output_text = '{}'.format(x)
+            output_text = '{}\n{}'.format(p, x)
             RSA.save_to_file(output_file, output_text)
 
         elif self.file_to_encrypt is not None:
@@ -36,7 +36,14 @@ class Elgamal(RSA):
                 f.write(str(key))
 
         elif self.file_to_decrypt is not None:
-            pass
+            p, x = RSA.read_from_file(self.key_file_name + '.prv').split('\n')
+            data = RSA.read_from_file(self.file_to_decrypt).split('\n')
+            a = int(data[-1])
+            data = [int(char) for char in data[:-1]]
+
+            data = Elgamal.decrypt(data, a, int(x), int(p))
+
+            RSA.save_to_file(self.output_file, ''.join(data))
 
         else:
             raise RuntimeError('invalid input')
@@ -74,12 +81,10 @@ class Elgamal(RSA):
         return en_msg, a
 
     @staticmethod
-    def decrypt(en_msg, p, key, q):
+    def decrypt(en_msg, a, x, p):
 
-        dr_msg = []
-        h = power(p, key, q)
-        for i in range(0, len(en_msg)):
-            dr_msg.append(chr(int(en_msg[i]/h)))
+        h = Elgamal.power(a, x, p)
+        dr_msg = [chr(int(char)//h) for char in en_msg]
 
         return dr_msg
 
