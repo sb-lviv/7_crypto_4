@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from rsa.main import RSA
+from .rsa.main import RSA
 import argparse
 import random
 from math import gcd
